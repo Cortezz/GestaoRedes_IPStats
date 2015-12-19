@@ -1,6 +1,7 @@
 var plotly = require("plotly")('JCortez','05vfc825fj');
 var snmp = require('snmp-native');
 var session = new snmp.Session();
+var dateFormat = require('dateformat');
 
 var tokens = ["f63kaewu22","0l8jbuq5o5"];
 
@@ -9,11 +10,11 @@ var rec = {
     'x':[],
     'y':[],
      type:'scatter',
-     mode:'lines',
+     mode:'lines+markers',
      name: 'IP Datagrams received',
     stream: {
       token: 'f63kaewu22',
-      maxpoints: 200
+      maxpoints: 6
   }
 };
 
@@ -22,11 +23,11 @@ var sent = {
     'x':[],
     'y':[],
      type:'scatter',
-     mode:'lines',
+     mode:'lines+markers',
      name: 'IP Datagrams sent',
     stream: {
       token: '0l8jbuq5o5',
-      maxpoints: 200
+      maxpoints: 6
   }
 };
 
@@ -36,12 +37,10 @@ var datagrams = [rec, sent];
 //Graph's Layout
 var layout = {
       xaxis: {
-        title: ("Time (sec)"),
-        range: [0,150]
+        title: ("Time (sec)")
       }, 
       yaxis: {
-        title: ("Number of packets"),
-        autorange: true
+        title: ("Number of packets")
       },
       showlegend: true,
       margin: {
@@ -50,7 +49,7 @@ var layout = {
 };
 
 
-var graphOptions = {layout: layout, fileopt : 'overwrite', filename : 'IP Stats'};
+var graphOptions = {layout: layout, filename: 'date-axes', fileopt : 'overwrite', filename : 'IP Stats'};
 var beginning = Date.now();
 
               //SystemUpTime     &   IpInReceives     &   IpInDelivers
@@ -87,12 +86,18 @@ plotly.plot(datagrams, graphOptions, function (err, msg) {
         if (error) {
             console.log('Fail :(');
         } else {
+          //Number of packets
           var packetsReceived = varbinds[1].value;
           var packetsSent = varbinds[2].value;
-          var timestampReceived = varbinds[1].receiveStamp;
-          var timestampSent = varbinds[2].receiveStamp;
-          var data = { x : ((timestampReceived - beginning)/1000), y : (packetsReceived/1000000) };
-          var data2 = { x : ((timestampSent - beginning)/1000), y : (packetsSent/1000000) };
+          //raw timestamps
+          var timestampReceived = new Date(varbinds[1].receiveStamp);
+          var timestampSent = new Date(varbinds[2].receiveStamp);
+          //Formatted timestamps;
+          var formattedTimestampReceived = dateFormat(new Date(timestampReceived),"yyyy-dd-mm HH:MM:ss");
+          var formattedTimestampSent = dateFormat(new Date(timestampSent),"yyyy-dd-mm HH:MM:ss");
+          //Prepare the data and stream it
+          var data = { x : formattedTimestampReceived, y : (packetsReceived/1000000) };
+          var data2 = { x : formattedTimestampSent, y : (packetsSent/1000000) };
           var streamObject = JSON.stringify(data);
           var streamObject2 = JSON.stringify(data2);
           stream2.write(streamObject2+'\n');
@@ -100,5 +105,5 @@ plotly.plot(datagrams, graphOptions, function (err, msg) {
         }
       });
         
-    }, 5000);
+    }, 11000);
 });
