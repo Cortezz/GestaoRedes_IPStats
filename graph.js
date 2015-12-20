@@ -40,7 +40,7 @@ var layout = {
         title: ("Time (sec)")
       }, 
       yaxis: {
-        title: ("Number of packets")
+        title: ("Packets/Min")
       },
       showlegend: true,
       margin: {
@@ -61,9 +61,11 @@ var oidsNew = [[1,3,6,1,2,1,4,31,1,1,3,0],[1,3,6,1,2,1,4,31,1,1,18,0]];
 
 
 
+var packetsReceived, packetsSent;
 
 
 plotly.plot(datagrams, graphOptions, function (err, msg) {
+    var i = 0;
     if (err) return console.log(err);
     console.log(msg);
 
@@ -86,24 +88,48 @@ plotly.plot(datagrams, graphOptions, function (err, msg) {
         if (error) {
             console.log('Fail :(');
         } else {
+          console.log(i);
+          var timestampReceived, timestampSent, formattedTimestampSent, formattedTimestampReceived;
+          if (i!=0){
+            var pcktsPerMin = calculatePacketsPerMin(packetsReceived, varbinds[1].value, packetsSent, varbinds[2].value,11);
+            console.log("Received/Min: "+pcktsPerMin[0])
+            console.log("Sent/Min: "+pcktsPerMin[1])
+          }
           //Number of packets
-          var packetsReceived = varbinds[1].value;
-          var packetsSent = varbinds[2].value;
+          packetsReceived = varbinds[1].value;
+          packetsSent = varbinds[2].value;
           //raw timestamps
-          var timestampReceived = new Date(varbinds[1].receiveStamp);
-          var timestampSent = new Date(varbinds[2].receiveStamp);
+          timestampReceived = new Date(varbinds[1].receiveStamp);
+          timestampSent = new Date(varbinds[2].receiveStamp);
           //Formatted timestamps;
-          var formattedTimestampReceived = dateFormat(new Date(timestampReceived),"yyyy-dd-mm HH:MM:ss");
-          var formattedTimestampSent = dateFormat(new Date(timestampSent),"yyyy-dd-mm HH:MM:ss");
+          formattedTimestampReceived = dateFormat(new Date(timestampReceived),"yyyy-dd-mm HH:MM:ss");
+          formattedTimestampSent = dateFormat(new Date(timestampSent),"yyyy-dd-mm HH:MM:ss");
           //Prepare the data and stream it
-          var data = { x : formattedTimestampReceived, y : (packetsReceived/1000000) };
-          var data2 = { x : formattedTimestampSent, y : (packetsSent/1000000) };
-          var streamObject = JSON.stringify(data);
-          var streamObject2 = JSON.stringify(data2);
-          stream2.write(streamObject2+'\n');
-          stream1.write(streamObject+'\n');
+          if (i!=0){
+            var data = { x : formattedTimestampReceived, y : pcktsPerMin[0] };
+            var data2 = { x : formattedTimestampSent, y : pcktsPerMin[1] };
+            var streamObject = JSON.stringify(data);
+            var streamObject2 = JSON.stringify(data2);
+            stream2.write(streamObject2+'\n');
+            stream1.write(streamObject+'\n');
+          }
+          i++;
         }
       });
         
     }, 11000);
 });
+
+
+function calculatePacketsPerMin (received, receivedNew, sent, sentNew, interval){
+  var pcktRcv, pcktSent;
+  pcktRcv = receivedNew - received;
+  pcktSent = sentNew - sent;
+
+  var packetsPerMin = new Object(); 
+  packetsPerMin[0] = Math.round((60*pcktRcv)/interval);
+  packetsPerMin[1] = Math.round((60*pcktSent)/interval);
+
+  return packetsPerMin;
+
+}
