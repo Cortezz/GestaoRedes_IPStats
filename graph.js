@@ -11,7 +11,7 @@ var rec = {
     'y':[],
      type:'scatter',
      mode:'lines+markers',
-     name: 'IP Datagrams received',
+     name: 'IP Datagrams received/min',
     stream: {
       token: 'f63kaewu22',
       maxpoints: 6
@@ -24,7 +24,7 @@ var sent = {
     'y':[],
      type:'scatter',
      mode:'lines+markers',
-     name: 'IP Datagrams sent',
+     name: 'IP Datagrams sent/min',
     stream: {
       token: '0l8jbuq5o5',
       maxpoints: 6
@@ -92,8 +92,6 @@ plotly.plot(datagrams, graphOptions, function (err, msg) {
           var timestampReceived, timestampSent, formattedTimestampSent, formattedTimestampReceived;
           if (i!=0){
             var pcktsPerMin = calculatePacketsPerMin(packetsReceived, varbinds[1].value, packetsSent, varbinds[2].value,11);
-            console.log("Received/Min: "+pcktsPerMin[0])
-            console.log("Sent/Min: "+pcktsPerMin[1])
           }
           //Number of packets
           packetsReceived = varbinds[1].value;
