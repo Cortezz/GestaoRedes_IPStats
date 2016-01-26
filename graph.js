@@ -117,7 +117,7 @@ plotly.plot(datagrams, graphOptions, function (err, msg) {
         }
       });
         
-    }, 11000);
+    }, 12000);
 });
 
 
