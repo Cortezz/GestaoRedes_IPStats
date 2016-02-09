@@ -6,6 +6,5 @@ IP Stats is an application that, through SNMP, is supposed to track the followin
   - Outgoing IP Packets / min
   
 
-##### Mestrado Integrado em Engenharia Informática, 4º Ano 2015/16. Universidade do Minho
   
 
